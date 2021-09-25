@@ -195,6 +195,31 @@ def getRobloxVersion(): #Roblox version strings seem to be random. To check if R
                 current_version.close()
                 logging.info(f"{versions_folder_entries[i]} is now the current version.")
 
+#Use the desktop file for the location of roblox because the installation of studio confuses getRobloxVersion()
+def getRobloxCmd():
+    execStr = None
+    desktopName = f'{home}/Desktop/Roblox Player.desktop'
+    logging.info("Find:" + desktopName)
+    if os.path.isfile(desktopName) == True:
+        logging.info("Found" + desktopName)
+        with open(desktopName) as f:
+            for line in f:
+                if (line.startswith("Exec=")):
+                    execStr = line
+                    break
+    logging.info("1:" + execStr)
+    if execStr != None:
+        if len(execStr) > 0:
+            startPat="wine "
+            endPat="RobloxPlayerLauncher.exe"
+            startPos = execStr.find(startPat) + len(startPat)
+            endPos = execStr.find(endPat) + len(endPat)
+            execStr = execStr[startPos:endPos]
+            execStr = execStr .replace('\\\\\\\\', '\\')
+            execStr = execStr .replace('\\\\', '')
+    logging.info("2:" + execStr)
+    return execStr
+
 def openRobloxSite():
     chromeCheck = os.system(f"pgrep {browser.pgrep_pattern}")
     if chromeCheck != 256:
@@ -221,15 +246,20 @@ def checkForLaunchArg(): #Check for a launch argument every 1.5 seconds.
     launchGame(launcharg)
 
 def launchGame(launcharg):
-    current_version = open(f"{home}/roblox-linux-launcher/current_version.txt","r")
-    current_version_text = current_version.read()
-    current_version.close()
+    cmd = getRobloxCmd()
+    if cmd == None:
+        current_version = open(f"{home}/roblox-linux-launcher/current_version.txt","r")
+        current_version_text = current_version.read()
+        current_version.close()
+        cmd = '{current_version_text}/RobloxPlayerLauncher.exe'
+        logging.info(f"Current Version Text: {current_version_text}")
+
     trimLaunchArgStart = launcharg.find('roblox-player')
     trimLaunchArgEnd = launcharg.find('channel:')
     launcharg = launcharg[trimLaunchArgStart:(trimLaunchArgEnd+8)]
-    logging.info(f"Launch Arg: {launcharg}")
-    logging.info(f"Current Version Text: {current_version_text}")
-    os.system(f'wine "{current_version_text}/RobloxPlayerLauncher.exe" {launcharg}')
+    syscall = f'wine "{cmd}" {launcharg}'
+    logging.info(syscall)
+    os.system(syscall)
 
 if len(argv) == 2:
     robloxArg = argv[1]
