@@ -288,7 +288,7 @@ else:
     if (spawn.find_executable(browser.browser_exe)):
         #Check if robloxlinux-launcher.desktop is installed.
         launcherfile=os.path.join(moduledir, "robloxlinux-launcher.desktop")
-        if (os.path.exists(configLogfileName)):
+        if (os.path.exists(launcherfile)):
             logging.error("Configuration is for xdg-open. No need to execute " + launcher_name + ",\n"
                     + "just press the play button for the game on the roblox site.\n"
                     + "Else uninstall the xdg config: " + launcher_name + " uninstall")
