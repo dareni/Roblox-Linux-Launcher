@@ -245,6 +245,23 @@ def checkForLaunchArg(): #Check for a launch argument every 1.5 seconds.
     os.system(f"pkill {browser.pgrep_pattern}")
     launchGame(launcharg)
 
+#Sometimes roblox does not cleanly exit, and an old hang will block a roblox
+#restart, requiring a clean of old processes. Roblox seems to spawn a child
+#process with init as the parent, leaving no way to cleanup using the pid
+#tree, so clean up by process name.
+def doKillOld():
+    parentPID = str(os.getpid())
+    proc = subprocess.Popen(["pgrep", "-f", "Roblox"], stdout = subprocess.PIPE)
+    pidListBytes, errs = proc.communicate(timeout = 15)
+    pidList = pidListBytes.decode(sys.stdout.encoding).split()
+    #Don't remove the new process.
+    pidList.remove(parentPID)
+    if len(pidList) > 0:
+        pidList.insert(0, "-9")
+        pidList.insert(0, "kill")
+        logging.info("Clean up for new invocation:" + str(pidList))
+        subprocess.run(pidList)
+
 def launchGame(launcharg):
     cmd = getRobloxCmd()
     if cmd == None:
@@ -259,6 +276,9 @@ def launchGame(launcharg):
     launcharg = launcharg[trimLaunchArgStart:(trimLaunchArgEnd+8)]
     syscall = f'wine "{cmd}" {launcharg}'
     logging.info(syscall)
+    #Kill off any old roblox processes.
+    doKillOld()
+    #Can not capture the output until the process exits so just let it go.
     os.system(syscall)
 
 if len(argv) == 2:
