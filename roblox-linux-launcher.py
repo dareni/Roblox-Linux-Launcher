@@ -154,6 +154,7 @@ browser = None
 robloxData = None
 
 home = os.getenv("HOME")
+user = os.getenv("USER")
 rll_version="1.0-alpha"
 wineprefix = os.getenv("WINEPREFIX",f"{home}/.wine")
 if os.path.isdir(wineprefix) == False:
@@ -198,7 +199,7 @@ def getRobloxVersion(): #Roblox version strings seem to be random. To check if R
 #Use the desktop file for the location of roblox because the installation of studio confuses getRobloxVersion()
 def getRobloxCmd():
     execStr = None
-    desktopName = f'{home}/Desktop/Roblox Player.desktop'
+    desktopName = f'{wineprefix}/drive_c/users/{user}/Desktop/Roblox Player.desktop'
     logging.info("Find roblox.desktop: " + desktopName)
     if os.path.isfile(desktopName) == True:
         logging.info("Found roblox.desktop: " + desktopName)
