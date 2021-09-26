@@ -199,25 +199,25 @@ def getRobloxVersion(): #Roblox version strings seem to be random. To check if R
 def getRobloxCmd():
     execStr = None
     desktopName = f'{home}/Desktop/Roblox Player.desktop'
-    logging.info("Find:" + desktopName)
+    logging.info("Find roblox.desktop: " + desktopName)
     if os.path.isfile(desktopName) == True:
-        logging.info("Found" + desktopName)
+        logging.info("Found roblox.desktop: " + desktopName)
         with open(desktopName) as f:
             for line in f:
                 if (line.startswith("Exec=")):
                     execStr = line
                     break
-    logging.info("1:" + execStr)
-    if execStr != None:
-        if len(execStr) > 0:
-            startPat="wine "
-            endPat="RobloxPlayerLauncher.exe"
-            startPos = execStr.find(startPat) + len(startPat)
-            endPos = execStr.find(endPat) + len(endPat)
-            execStr = execStr[startPos:endPos]
-            execStr = execStr .replace('\\\\\\\\', '\\')
-            execStr = execStr .replace('\\\\', '')
-    logging.info("2:" + execStr)
+        if execStr != None and len(execStr) > 0:
+                startPat="wine "
+                endPat="RobloxPlayerLauncher.exe"
+                startPos = execStr.find(startPat) + len(startPat)
+                endPos = execStr.find(endPat) + len(endPat)
+                execStr = execStr[startPos:endPos]
+                execStr = execStr .replace('\\\\\\\\', '\\')
+                execStr = execStr .replace('\\\\', '')
+    else:
+        logging.error("No roblox desktop file: " + desktopName)
+    logging.info("Desktop exec cmd: " + execStr)
     return execStr
 
 def openRobloxSite():
