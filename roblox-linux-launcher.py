@@ -252,16 +252,31 @@ def checkForLaunchArg(): #Check for a launch argument every 1.5 seconds.
 #tree, so clean up by process name.
 def doKillOld():
     parentPID = str(os.getpid())
-    proc = subprocess.Popen(["pgrep", "-f", "Roblox"], stdout = subprocess.PIPE)
-    pidListBytes, errs = proc.communicate(timeout = 15)
-    pidList = pidListBytes.decode(sys.stdout.encoding).split()
-    #Don't remove the new process.
-    pidList.remove(parentPID)
-    if len(pidList) > 0:
-        pidList.insert(0, "-9")
-        pidList.insert(0, "kill")
-        logging.info("Clean up for new invocation:" + str(pidList))
-        subprocess.run(pidList)
+    pidList = None
+    tries = 0
+    while pidList == None or len(pidList) > 0:
+        proc = subprocess.Popen(["pgrep", "-if", "Roblox"], stdout = subprocess.PIPE)
+        pidListBytes, errs = proc.communicate(timeout = 15)
+        pidList = pidListBytes.decode(sys.stdout.encoding).split()
+        #Don't remove the new process.
+        pidList.remove(parentPID)
+        if len(pidList) > 0:
+            pidList.insert(0, "-9")
+            pidList.insert(0, "kill")
+            logging.info("Clean up for new invocation:" + str(pidList))
+            subprocess.run(pidList)
+            #Kill these too.
+            subprocess.run(["pkill", "-9", "-f", "system32\\\\wine"])
+            subprocess.run(["pkill", "-9", "-f", "system32\\\\services"])
+            subprocess.run(["pkill", "-9", "-f", "system32\\\\plugplay"])
+            subprocess.run(["pkill", "-9", "-f", "system32\\\\explorer"])
+            time.sleep(5)
+        else:
+            logging.info("No clean up.")
+        tries += 1
+        if tries > 3:
+            logging.error("Can not cleanup. Aborting.")
+            quit()
 
 def launchGame(launcharg):
     cmd = getRobloxCmd()
@@ -276,10 +291,10 @@ def launchGame(launcharg):
     trimLaunchArgEnd = launcharg.find('channel:')
     launcharg = launcharg[trimLaunchArgStart:(trimLaunchArgEnd+8)]
     syscall = f'wine "{cmd}" {launcharg}'
-    logging.info(syscall)
     #Kill off any old roblox processes.
     doKillOld()
     #Can not capture the output until the process exits so just let it go.
+    logging.info(syscall)
     os.system(syscall)
 
 if len(argv) == 2:
